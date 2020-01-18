@@ -29,7 +29,7 @@ parameters:
 - name: CLUSTER_VARIANT
 - name: BUILD_ID
   required: false
-- name: USE_LEASE_CLIENT
+  #- name: USE_LEASE_CLIENT
 
 objects:
 
@@ -121,7 +121,8 @@ objects:
       command:
       - cp
       - /usr/bin/oc
-      - /tmp/shared/oc
+      - /usr/bin/kubectl
+      - /tmp/shared/
 
     containers:
     # Once the cluster is up, executes shared tests
@@ -312,6 +313,7 @@ objects:
 
         function run-upgrade-tests() {
           openshift-tests run-upgrade "${TEST_SUITE}" --to-image "${RELEASE_IMAGE_LATEST}" \
+            --options "${TEST_OPTIONS}" \
             --provider "${TEST_PROVIDER:-}" -o /tmp/artifacts/e2e.log --junit-dir /tmp/artifacts/junit
         }
 
@@ -379,8 +381,8 @@ objects:
       - /bin/bash
       - -c
       - |
-        #!/bin/sh
-        set -e
+        #!/bin/bash
+        set -euo pipefail
 
         trap 'rc=$?; if test "${rc}" -eq 0; then touch /tmp/setup-success; else touch /tmp/exit /tmp/setup-failed; fi; exit "${rc}"' EXIT
         trap 'CHILDREN=$(jobs -p); if test -n "${CHILDREN}"; then kill ${CHILDREN} && wait; fi' TERM
@@ -627,7 +629,7 @@ objects:
         EOF
         fi
 
-        TF_LOG=debug openshift-install --dir=/tmp/artifacts/installer create cluster &
+        TF_LOG=debug openshift-install --dir=/tmp/artifacts/installer create cluster 2>&1 | grep -v password &
         wait "$!"
 
     # Performs cleanup of all created resources
@@ -659,6 +661,8 @@ objects:
       - -c
       - |
         #!/bin/bash
+        set -eo pipefail
+
         function queue() {
           local TARGET="${1}"
           shift
