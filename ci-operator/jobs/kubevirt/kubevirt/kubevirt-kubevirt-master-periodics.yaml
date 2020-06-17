@@ -28,12 +28,8 @@ periodics:
       command:
       - ci-operator
       env:
-      - name: CLUSTER_ENABLE_NESTED_VIRT
-        value: "true"
-      - name: CLUSTER_NESTED_VIRT_IMAGE
-        value: rhcos43-nested-virt
       - name: CLUSTER_TYPE
-        value: gcp
+        value: azure4
       - name: JOB_NAME_SAFE
         value: e2e-periodic-gcp-nested-virt
       - name: TEST_COMMAND
@@ -82,9 +78,7 @@ periodics:
       projected:
         sources:
         - secret:
-            name: cluster-secrets-gcp
-        - configMap:
-            name: cluster-profile-gcp
+            name: cluster-secrets-azure4
     - configMap:
         name: prow-job-cluster-launch-installer-custom-test-image
       name: job-definition
